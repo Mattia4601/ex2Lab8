@@ -10,49 +10,6 @@ struct sym_table{
     int maxN;//dimensione massima
 };
 
-static void mergeArray(char* a[MAX], int p, int q, int r) {
-    int i, j, k=0;
-    char *b[MAX];
-    i = p;
-    j = q+1;
-
-    while (i<=q && j<=r) {
-        if (strcmp(a[i],a[j])<0) {
-            (b[k])=(a[i]);
-            i++;
-        } else {
-            (b[k])=(a[j]);
-            j++;
-        }
-        k++;
-    }
-    while (i <= q) {
-       (b[k])= (a[i]);
-        i++;
-        k++;
-    }
-    while (j <= r) {
-        (b[k])= (a[j]);
-        j++;
-        k++;
-    }
-    for (k=p; k<=r; k++)
-        (a[k])= (b[k-p]);
-    return;
-}
-
-
-static void mergeSortArray(char** array,int p, int r){
-    int q;
-    if (p < r) {
-        q = (p+r)/2;
-        mergeSortArray(array, p, q);
-        mergeSortArray(array, q+1, r);
-        mergeArray(array, p, q, r);
-    }
-
-}
-
 char** STgetSortVertexs(ST st){
     char **v_tmp;
     int i,size;
