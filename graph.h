@@ -21,10 +21,11 @@ void GRAPHinsertE(Graph G, int id1, int id2, int wt);//aggiunge un arco
 void GRAPHremoveE(Graph G, int id1, int id2);//rimuove un arco
 //inserisci nella symtable il nuovo vertice se non presente, altrimenti ritorna direttamente l'indice
 //nella symtable relativo a quel vertice
-int GRAPHgetIndex(Graph G, char *str, char* subnet);
+int GRAPHgetIndex(Graph G, char *str);
 void GRAPHstore(Graph G, FILE *fout);//carica il grafo su file
 void GRAPHedges(Graph G, Edge *a);//crea i vari archi del grafo leggendo la matrice di adiacenza
 void GRAPHelencaVertici(Graph g);
 int GRAPHverificaSottografo(Graph g,char *vrt1, char *str2, char *str3);
-
+void GRAPHcaricaListAdj(Graph g);
+int LISTcheckSubgraph(Graph g, int v1, int v2,int v3);
 #endif //ASDLAB8_GRAPH_H

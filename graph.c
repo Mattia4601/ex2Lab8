@@ -5,20 +5,127 @@
 #define MAXC 30
 #define maxWT INT_MAX
 
+typedef struct node *link;
+
+struct node{
+    int idV,wt;//id del vertice = idV    peso arco = wt
+    link next;//prossimo vertice a cui e collegato
+};
+
 struct graph {
     int V;
     int E;
     int **madj;
     ST tab;
+    link *listAdj;//vettori di puntatori a nodo che serve per la lista di adiacenze
+    link z;//nodo sentinella
 };
 
 //funzioni che possono essere viste solo da questo file
 static Edge EDGEcreate(int v, int w, int wt);
 static int **MATRIXinit(int r, int c, int val);
 static void insertE(Graph G, Edge e);
+static link *LISTinit(int dim, link *z);
+static link NEW(int v, int wt, link next);
 
 
+/*funzione che verifica se tre vertici formano un sottografo completo usando
+  però la lista di adj*/
+int LISTcheckSubgraph(Graph g, int v1, int v2,int v3){
+    link x;
+    int ok1=0, ok2=0, ok3=0;
 
+    //verifico se v1 ha un arco con v2 e v3
+    /*Scorro la lista contenuta nella cella v1 di listAdj per vedere se
+      contiene v2 e v3*/
+    for (x=g->listAdj[v1]; x!=NULL; x=x->next){
+        if (ok1==0 || ok2 == 0) {
+            if (x->idV == v2) {
+                ok1 = 1;
+            }
+            if (x->idV == v3) {
+                ok2 = 1;
+            }
+        }
+        if (ok1 == 1 && ok2 == 1){
+            break;
+        }
+    }
+    //verifico se v2 ha un arco con v3
+    //scorriamo la lista contenuta nella cella v2 e verifichiamo se contiene v3
+    for (x=g->listAdj[v2]; x!=NULL; x=x->next){
+        if (ok3 == 0) {
+
+            if (x->idV == v3) {
+                ok3 = 1;
+            }
+        }
+        if (ok3 == 1 ){
+            break;
+        }
+    }
+    //controllo finale se tutti gli ok sono uguali a 1 allora ho un sottografo completo
+    if (ok1 == 1 && ok2 == 1 && ok3 == 1){
+        return 1;
+    }
+    else{//altrimenti non è un sottografo completo
+        return -1;
+    }
+}
+
+/* Funzione per la creazione di un nuovo nodo*/
+static link NEW(int v, int wt, link next){
+    link x=malloc(sizeof(*x));
+    if (x==NULL){
+        printf("Errore di allocazione.\n");
+        exit(-1);
+    }
+    x->idV = v;
+    x->wt = wt;
+    x->next = next;
+    return x;
+}
+static link *LISTinit(int dim, link *z){
+    link *listAdj;
+    int v;
+    /*Creo il nodo sentinella, inizializzando idV e wt a -1, next a null
+     e faccio puntare la sentinella puntata da z a tale nodo */
+    *z = NEW(-1,-1,NULL);
+    //alloco la lista di adj
+    listAdj = malloc(dim * sizeof(link ));
+    if (listAdj == NULL){
+        printf("Errore allocazione della lista di adj.\n");
+        exit(-1);
+    }
+    //inizializzo ogni cella del vettore di link al nodo sentinella z
+    for (v=0; v<dim; v++){
+        listAdj[v] = *(z);
+    }
+    return listAdj;
+}
+
+//funzione che carica la lista di adiacenze andando a leggere dalla matrice di adiacenze
+//perciò se la matadj è vuota non può funzionare
+void GRAPHcaricaListAdj(Graph g){
+    int i,j;
+    if (g->madj == NULL || g->V == 0){
+        printf("Matrice di adiacenze ancora vuota, impossibile caricare la lista di adiacenze.\n");
+        exit(-1);
+    }
+    //inizializzo la lista di adiacenze
+    g->listAdj = LISTinit(g->V, &g->z);
+    /*Adesso scorro la lista di adiacenze per caricare i vari vertici e archi
+      ogni qual volta che madj[i][j] != maxWt significa che l'i-esimo vertice
+      ha un arco con il j-esimo vertice*/
+    for (i=0; i<g->V; i++){
+        for(j=0;j<g->V;j++){
+            if(g->madj[i][j] != maxWT){
+                //ogni volta che inserisco un vertice lo inserisco in testa a listAdj[i]
+                g->listAdj[i] = NEW(j,g->madj[i][j],g->listAdj[i]);
+            }
+        }
+    }
+}
 
 int GRAPHverificaSottografo(Graph g,char *vrt1,char *vrt2, char* vrt3){
     int id1,id2,id3;
@@ -102,6 +209,14 @@ Graph GRAPHinit(){
     if(g->tab == NULL){
         return NULL;
     }
+    /* Pongo pari a NULL il campo LISTADIACENZE (vettore
+       di puntatori a LINK, ove ogni puntatore I-ESIMO
+       LISTADIACENZE[I] è il puntatore alla testa della
+       lista che memorizza in ogni nodo i vertici con cui
+       il vertice I forma un arco e il peso di tali archi
+       nel caso di grafo pesato) della struct di tipo GRAPH
+       puntata da G. */
+    g->listAdj = NULL; //lo inizializzo a null per poi inizializzare la lista con una funzione apposita
     return g;
 }
 
@@ -202,13 +317,9 @@ void GRAPHstore(Graph g, FILE *fout) {
 
 }
 
-int GRAPHgetIndex(Graph G, char *str, char *subnet) {
+int GRAPHgetIndex(Graph G, char *str) {
     int id;
     id = STsearch(G->tab, str);
-    if (id == -1) {
-        id = STsize(G->tab);
-        STinsert(G->tab, str, subnet);
-    }
     return id;
 }
 
